@@ -345,6 +345,8 @@ testRun(void)
             "  --repo-s3-process-cmd               S3 authentication process command\n"
             "  --repo-s3-region                    S3 repository region\n"
             "  --repo-s3-requester-pays            S3 repository requester pays\n"
+            "  --repo-s3-resume-object-lock        S3 resume object lock\n"
+            "  --repo-s3-resume-object-lock-mode   S3 resume object lock mode\n"
             "  --repo-s3-role                      S3 repository role\n"
             "  --repo-s3-service                   S3 signing service\n"
             "  --repo-s3-sse-customer-key          S3 repository SSE customer key\n"

@@ -43,6 +43,8 @@ struct StorageWriteS3
 
     HttpRequest *request;                                           // Async request
     size_t partSize;
+    TimeMSec retention;                                             // Object lock retention (0 = bucket default)
+    StorageRetentionMode retentionMode;                             // Object lock mode when retention is set
     Buffer *partBuffer;
     const String *uploadId;
     StringList *uploadPartList;
@@ -102,7 +104,8 @@ storageWriteS3PartAsync(StorageWriteS3 *const this)
                         storageS3RequestP(
                             this->storage, HTTP_VERB_POST_STR, this->name,
                             .query = httpQueryAdd(httpQueryNewP(), S3_QUERY_UPLOADS_STR, EMPTY_STR), .sseKms = true,
-                            .sseC = true, .tag = true))));
+                            .sseC = true, .tag = true, .objectLockRetention = this->retention,
+                            .objectLockMode = this->retentionMode))));
 
             // Store the upload id
             MEM_CONTEXT_OBJ_BEGIN(this)
@@ -235,7 +238,7 @@ storageWriteS3Close(THIS_VOID)
             {
                 storageS3RequestP(
                     this->storage, HTTP_VERB_PUT_STR, this->name, .content = this->partBuffer, .sseKms = true,
-                    .sseC = true, .tag = true);
+                    .sseC = true, .tag = true, .objectLockRetention = this->retention, .objectLockMode = this->retentionMode);
             }
 
             bufFree(this->partBuffer);
@@ -255,12 +258,16 @@ static const StorageWriteInterface storageWriteS3Interface =
 };
 
 FN_EXTERN StorageWriteS3 *
-storageWriteS3New(StorageS3 *const storage, const String *const name, const size_t partSize)
+storageWriteS3New(
+    StorageS3 *const storage, const String *const name, const size_t partSize, const TimeMSec retention,
+    const StorageRetentionMode retentionMode)
 {
     FUNCTION_LOG_BEGIN(logLevelTrace);
         FUNCTION_LOG_PARAM(STORAGE_S3, storage);
         FUNCTION_LOG_PARAM(STRING, name);
         FUNCTION_LOG_PARAM(SIZE, partSize);
+        FUNCTION_LOG_PARAM(TIME_MSEC, retention);
+        FUNCTION_LOG_PARAM(ENUM, retentionMode);
     FUNCTION_LOG_END();
 
     ASSERT(storage != NULL);
@@ -274,6 +281,8 @@ storageWriteS3New(StorageS3 *const storage, const String *const name, const size
             .storage = storage,
             .name = strDup(name),
             .partSize = partSize,
+            .retention = retention,
+            .retentionMode = retentionMode,
             .partBuffer = bufNew(0),
         };
     }

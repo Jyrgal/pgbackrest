@@ -597,6 +597,19 @@ testRun(void)
         TEST_RESULT_VOID(storagePutP(write, contentBuf), "write file");
         TEST_RESULT_BOOL(bufEq(storageGetP(storageNewReadP(storageRepo, STRDEF("test.txt"))), contentBuf), true, "check file");
 
+        // -------------------------------------------------------------------------------------------------------------------------
+        TEST_TITLE("write file with retention");
+
+        TEST_ASSIGN(
+            write,
+            storageNewWriteP(
+                storageRepoWrite, STRDEF("test.txt"), .retention = 86400000, .retentionMode = storageRetentionModeCompliance),
+            "new write file");
+        TEST_RESULT_UINT(((StorageWriteRemote *)write->driver)->retention, 86400000, "check retention");
+        TEST_RESULT_UINT(((StorageWriteRemote *)write->driver)->retentionMode, storageRetentionModeCompliance, "check mode");
+        TEST_RESULT_VOID(storagePutP(write, contentBuf), "write file");
+        TEST_RESULT_BOOL(bufEq(storageGetP(storageNewReadP(storageRepo, STRDEF("test.txt"))), contentBuf), true, "check file");
+
         // Enable protocol compression in the storage object
         ((StorageRemote *)storageDriver(storageRepoWrite))->compressLevel = 3;
 

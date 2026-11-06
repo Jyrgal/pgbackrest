@@ -1913,6 +1913,82 @@ testRun(void)
     }
 
     // *****************************************************************************************************************************
+    if (testBegin("backupManifestCopyRetention()"))
+    {
+        // -------------------------------------------------------------------------------------------------------------------------
+        TEST_TITLE("manifest copy retention is not set");
+
+        StringList *argList = strLstNew();
+        hrnCfgArgRawZ(argList, cfgOptStanza, "test1");
+        hrnCfgArgRawZ(argList, cfgOptPgPath, TEST_PATH "/pg1");
+        hrnCfgArgRawZ(argList, cfgOptRepoPath, TEST_PATH "/repo");
+        hrnCfgArgRawZ(argList, cfgOptRepoRetentionFull, "1");
+        HRN_CFG_LOAD(cfgCmdBackup, argList);
+
+        BackupManifestCopyRetention retention = {0};
+
+        TEST_ASSIGN(retention, backupManifestCopyRetention(false), "get retention");
+        TEST_RESULT_UINT(retention.retention, 0, "check retention");
+        TEST_RESULT_UINT(retention.mode, storageRetentionModeGovernance, "check mode");
+
+        // -------------------------------------------------------------------------------------------------------------------------
+        TEST_TITLE("manifest copy retention with default mode");
+
+        StringList *argListS3 = strLstNew();
+        hrnCfgArgRawZ(argListS3, cfgOptStanza, "test1");
+        hrnCfgArgRawZ(argListS3, cfgOptPgPath, TEST_PATH "/pg1");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoType, "s3");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoPath, "/repo");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoS3Bucket, "bucket");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoS3Endpoint, "s3.amazonaws.com");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoS3Region, "us-east-1");
+        hrnCfgEnvRawZ(cfgOptRepoS3Key, "key");
+        hrnCfgEnvRawZ(cfgOptRepoS3KeySecret, "secret");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoRetentionFull, "1");
+        hrnCfgArgRawZ(argListS3, cfgOptRepoS3ResumeObjectLock, "1d");
+
+        argList = strLstDup(argListS3);
+        HRN_CFG_LOAD(cfgCmdBackup, argList);
+
+        TEST_ASSIGN(retention, backupManifestCopyRetention(false), "get retention");
+        TEST_RESULT_UINT(retention.retention, 86400000, "check retention");
+        TEST_RESULT_UINT(retention.mode, storageRetentionModeGovernance, "check mode");
+
+        // -------------------------------------------------------------------------------------------------------------------------
+        TEST_TITLE("manifest copy retention with compliance mode");
+
+        argList = strLstDup(argListS3);
+        hrnCfgArgRawZ(argList, cfgOptRepoS3ResumeObjectLockMode, "compliance");
+        HRN_CFG_LOAD(cfgCmdBackup, argList);
+
+        TEST_ASSIGN(retention, backupManifestCopyRetention(false), "get retention");
+        TEST_RESULT_UINT(retention.retention, 86400000, "check retention");
+        TEST_RESULT_UINT(retention.mode, storageRetentionModeCompliance, "check mode");
+
+        // -------------------------------------------------------------------------------------------------------------------------
+        TEST_TITLE("final manifest copy uses storage default retention even when retention is set");
+
+        TEST_ASSIGN(retention, backupManifestCopyRetention(true), "get retention");
+        TEST_RESULT_UINT(retention.retention, 0, "check retention");
+        TEST_RESULT_UINT(retention.mode, storageRetentionModeGovernance, "check mode");
+
+        // -------------------------------------------------------------------------------------------------------------------------
+        TEST_TITLE("manifest copy retention below the minimum is rejected");
+
+        argList = strLstDup(argListS3);
+        strLstRemoveIdx(argList, strLstSize(argList) - 1);
+        hrnCfgArgRawZ(argList, cfgOptRepoS3ResumeObjectLock, "0");
+
+        TEST_ERROR(
+            HRN_CFG_LOAD(cfgCmdBackup, argList), OptionInvalidValueError,
+            "'0' is out of range for 'repo1-s3-resume-object-lock' option\n"
+            "HINT: allowed range is 1m to 36500d inclusive");
+
+        hrnCfgEnvRemoveRaw(cfgOptRepoS3Key);
+        hrnCfgEnvRemoveRaw(cfgOptRepoS3KeySecret);
+    }
+
+    // *****************************************************************************************************************************
     if (testBegin("backupJobResult()"))
     {
         // Set log level to detail

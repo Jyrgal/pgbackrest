@@ -13,6 +13,7 @@ in the description of each function.
 #ifndef STORAGE_STORAGE_INTERN_H
 #define STORAGE_STORAGE_INTERN_H
 
+#include "common/time.h"
 #include "common/type/param.h"
 #include "storage/info.h"
 #include "storage/list.h"
@@ -171,6 +172,11 @@ typedef struct StorageInterfaceNewWriteParam
 
     // Is the file compressible? This is used when the file must be moved across a network and temporary compression is helpful.
     bool compressible;
+
+    // Explicit retention period and mode for the file (retention 0 = storage default). Storage that supports per-file retention
+    // (e.g. S3 Object Lock) should apply it from the time the file is written. Storage that does not support it should ignore it.
+    TimeMSec retention;
+    StorageRetentionMode retentionMode;
 } StorageInterfaceNewWriteParam;
 
 typedef void *StorageInterfaceNewWrite(void *thisVoid, const String *file, StorageInterfaceNewWriteParam param);

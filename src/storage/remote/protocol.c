@@ -572,11 +572,13 @@ storageRemoteWriteOpenProtocol(PackRead *const param)
         const bool syncFile = pckReadBoolP(param);
         const bool syncPath = pckReadBoolP(param);
         const bool atomic = pckReadBoolP(param);
+        const TimeMSec retention = pckReadU64P(param);
+        const StorageRetentionMode retentionMode = (StorageRetentionMode)pckReadU32P(param);
         const Pack *const filter = pckReadPackP(param);
 
         StorageWrite *const fileWrite = storageWriteNew(
             storageRemoteProtocolLocal.storage, file, modeFile, modePath, user, group, timeModified, createPath, syncFile,
-            syncPath, atomic, true, false);
+            syncPath, atomic, true, false, retention, retentionMode);
 
         // Set filter group based on passed filters
         storageRemoteFilterGroup(ioWriteFilterGroup(storageWriteIo(fileWrite)), filter);

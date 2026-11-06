@@ -1,4 +1,35 @@
 /***********************************************************************************************************************************
+Get the retention for a copy of the backup manifest. Checkpoint copies are overwritten by the next save so they get the retention
+from repo-s3-resume-object-lock when it is set. The final copy uses the storage default retention like the rest of the backup.
+Retention 0 means the storage default retention is used.
+***********************************************************************************************************************************/
+typedef struct BackupManifestCopyRetention
+{
+    TimeMSec retention;                                             // Retention period (0 = storage default)
+    StorageRetentionMode mode;                                      // Retention mode when retention is set
+} BackupManifestCopyRetention;
+
+static BackupManifestCopyRetention
+backupManifestCopyRetention(const bool final)
+{
+    FUNCTION_TEST_BEGIN();
+        FUNCTION_TEST_PARAM(BOOL, final);
+    FUNCTION_TEST_END();
+
+    BackupManifestCopyRetention result = {0};
+
+    // Only checkpoint copies get explicit retention. The option is only valid for S3 repositories and the mode is only valid when
+    // the retention is set.
+    if (!final && cfgOptionTest(cfgOptRepoS3ResumeObjectLock))
+    {
+        result.retention = cfgOptionUInt64(cfgOptRepoS3ResumeObjectLock);
+        result.mode = (StorageRetentionMode)cfgOptionSeq(cfgOptRepoS3ResumeObjectLockMode);
+    }
+
+    FUNCTION_TEST_RETURN_TYPE(BackupManifestCopyRetention, result);
+}
+
+/***********************************************************************************************************************************
 Save a copy of the backup manifest during processing to preserve checksums for a possible resume. Only save the final copy when
 resume is disabled since an incremental copy will not be used in a future backup unless resume is enabled beforehand.
 ***********************************************************************************************************************************/
@@ -17,12 +48,15 @@ backupManifestSaveCopy(Manifest *const manifest, const CipherSpec *const cipherS
     {
         MEM_CONTEXT_TEMP_BEGIN()
         {
+            const BackupManifestCopyRetention retention = backupManifestCopyRetention(final);
+
             // Open file for write
             IoWrite *const write = storageWriteIo(
                 storageNewWriteP(
                     storageRepoWrite(),
                     strNewFmt(
-                        STORAGE_REPO_BACKUP "/%s/" BACKUP_MANIFEST_FILE INFO_COPY_EXT, strZ(manifestData(manifest)->backupLabel))));
+                        STORAGE_REPO_BACKUP "/%s/" BACKUP_MANIFEST_FILE INFO_COPY_EXT, strZ(manifestData(manifest)->backupLabel)),
+                    .retention = retention.retention, .retentionMode = retention.mode));
 
             // Add encryption filter if required
             cipherBlockFilterGroupAdd(ioWriteFilterGroup(write), cipherModeEncrypt, cipherSpecManifest);

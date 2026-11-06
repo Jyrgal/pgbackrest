@@ -193,6 +193,12 @@ typedef struct StorageNewWriteParam
     bool noTruncate;
 
     bool compressible;
+
+    // Explicit retention period for the file (0 = storage default). Storage that supports per-file retention (e.g. S3 Object Lock)
+    // protects the file for this period from the time it is written, overriding any default retention. Other storage ignores it.
+    TimeMSec retention;
+    StorageRetentionMode retentionMode;
+
     mode_t modeFile;
     mode_t modePath;
     time_t timeModified;

@@ -9,6 +9,16 @@ Object type
 ***********************************************************************************************************************************/
 typedef struct StorageWrite StorageWrite;
 
+/***********************************************************************************************************************************
+Retention mode applied with an explicit per-file retention period. Defined before the includes below since the storage headers
+include each other.
+***********************************************************************************************************************************/
+typedef enum
+{
+    storageRetentionModeGovernance,                                 // Retention can be removed by users with special permissions
+    storageRetentionModeCompliance,                                 // Retention cannot be removed by any user
+} StorageRetentionMode;
+
 #include "common/io/write.h"
 #include "common/type/object.h"
 #include "common/type/string.h"

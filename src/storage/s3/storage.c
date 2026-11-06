@@ -42,6 +42,10 @@ STRING_STATIC(S3_HEADER_SSECUSTKEY_KEY_MD5_STR,                     "x-amz-serve
 STRING_STATIC(S3_HEADER_TAGGING,                                    "x-amz-tagging");
 STRING_STATIC(S3_HEADER_REQUEST_PAYER,                              "x-amz-request-payer");
 STRING_STATIC(S3_HEADER_REQUEST_PAYER_STR,                          "requester");
+STRING_STATIC(S3_HEADER_OBJECT_LOCK_MODE_STR,                       "x-amz-object-lock-mode");
+STRING_STATIC(S3_HEADER_OBJECT_LOCK_MODE_GOVERNANCE_STR,            "GOVERNANCE");
+STRING_STATIC(S3_HEADER_OBJECT_LOCK_MODE_COMPLIANCE_STR,            "COMPLIANCE");
+STRING_STATIC(S3_HEADER_OBJECT_LOCK_RETAIN_UNTIL_DATE_STR,          "x-amz-object-lock-retain-until-date");
 
 /***********************************************************************************************************************************
 S3 query tokens
@@ -563,6 +567,8 @@ storageS3RequestAsync(StorageS3 *const this, const String *const verb, const Str
         FUNCTION_LOG_PARAM(BOOL, param.sseKms);
         FUNCTION_LOG_PARAM(BOOL, param.sseC);
         FUNCTION_LOG_PARAM(BOOL, param.tag);
+        FUNCTION_LOG_PARAM(TIME_MSEC, param.objectLockRetention);
+        FUNCTION_LOG_PARAM(ENUM, param.objectLockMode);
     FUNCTION_LOG_END();
 
     ASSERT(this != NULL);
@@ -611,6 +617,20 @@ storageS3RequestAsync(StorageS3 *const this, const String *const verb, const Str
         // Set tags when requested and available
         if (param.tag && this->tag != NULL)
             httpHeaderPut(requestHeader, S3_HEADER_TAGGING, this->tag);
+
+        // Set object lock retention when requested. Explicit retention on an object overrides the default retention configured on
+        // the bucket.
+        if (param.objectLockRetention != 0)
+        {
+            httpHeaderPut(
+                requestHeader, S3_HEADER_OBJECT_LOCK_MODE_STR,
+                param.objectLockMode == storageRetentionModeCompliance ?
+                    S3_HEADER_OBJECT_LOCK_MODE_COMPLIANCE_STR : S3_HEADER_OBJECT_LOCK_MODE_GOVERNANCE_STR);
+            httpHeaderPut(
+                requestHeader, S3_HEADER_OBJECT_LOCK_RETAIN_UNTIL_DATE_STR,
+                strNewTimeP(
+                    "%Y-%m-%dT%H:%M:%SZ", time(NULL) + (time_t)(param.objectLockRetention / MSEC_PER_SEC), .utc = true));
+        }
 
         // When using path-style URIs the bucket name needs to be prepended
         if (this->uriStyle == storageS3UriStylePath)
@@ -733,11 +753,14 @@ storageS3Request(StorageS3 *const this, const String *const verb, const String *
         FUNCTION_LOG_PARAM(BOOL, param.sseKms);
         FUNCTION_LOG_PARAM(BOOL, param.sseC);
         FUNCTION_LOG_PARAM(BOOL, param.tag);
+        FUNCTION_LOG_PARAM(TIME_MSEC, param.objectLockRetention);
+        FUNCTION_LOG_PARAM(ENUM, param.objectLockMode);
     FUNCTION_LOG_END();
 
     HttpRequest *const request = storageS3RequestAsyncP(
         this, verb, path, .header = param.header, .query = param.query, .content = param.content, .sseKms = param.sseKms,
-        .sseC = param.sseC, .tag = param.tag);
+        .sseC = param.sseC, .tag = param.tag, .objectLockRetention = param.objectLockRetention,
+        .objectLockMode = param.objectLockMode);
     HttpResponse *const result = storageS3ResponseP(
         request, .allowMissing = param.allowMissing, .contentIo = param.contentIo);
 
@@ -1112,7 +1135,8 @@ storageS3NewWrite(THIS_VOID, const String *const file, const StorageInterfaceNew
     FUNCTION_LOG_BEGIN(logLevelDebug);
         FUNCTION_LOG_PARAM(STORAGE_S3, this);
         FUNCTION_LOG_PARAM(STRING, file);
-        (void)param;                                                // No parameters are used
+        FUNCTION_LOG_PARAM(TIME_MSEC, param.retention);
+        FUNCTION_LOG_PARAM(ENUM, param.retentionMode);
     FUNCTION_LOG_END();
 
     ASSERT(this != NULL);
@@ -1123,7 +1147,7 @@ storageS3NewWrite(THIS_VOID, const String *const file, const StorageInterfaceNew
     ASSERT(param.group == NULL);
     ASSERT(param.timeModified == 0);
 
-    FUNCTION_LOG_RETURN(STORAGE_WRITE_S3, storageWriteS3New(this, file, this->partSize));
+    FUNCTION_LOG_RETURN(STORAGE_WRITE_S3, storageWriteS3New(this, file, this->partSize, param.retention, param.retentionMode));
 }
 
 /**********************************************************************************************************************************/

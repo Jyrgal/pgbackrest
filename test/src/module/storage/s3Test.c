@@ -82,6 +82,7 @@ typedef struct TestRequestParam
     const char *ttl;
     const char *token;
     const char *tag;
+    const char *objectLockMode;
     bool requesterPays;
 } TestRequestParam;
 
@@ -126,6 +127,9 @@ testRequest(IoWrite *write, Storage *s3, const char *verb, const char *path, Tes
             strCatZ(request, "range;");
 
         strCatZ(request, "x-amz-content-sha256;x-amz-date");
+
+        if (param.objectLockMode != NULL)
+            strCatZ(request, ";x-amz-object-lock-mode;x-amz-object-lock-retain-until-date");
 
         if (param.requesterPays)
             strCatZ(request, ";x-amz-request-payer");
@@ -189,6 +193,13 @@ testRequest(IoWrite *write, Storage *s3, const char *verb, const char *path, Tes
             "x-amz-date:????????T??????Z" "\r\n",
             param.content == NULL ?
                 HASH_TYPE_SHA256_ZERO : strZ(strNewEncode(encodingHex, cryptoHashOne(hashTypeSha256, BUFSTRZ(param.content)))));
+
+        // Add object lock mode and retain until date
+        if (param.objectLockMode != NULL)
+        {
+            strCatFmt(request, "x-amz-object-lock-mode:%s\r\n", param.objectLockMode);
+            strCatZ(request, "x-amz-object-lock-retain-until-date:\?\?\?\?-\?\?-\?\?T\?\?:\?\?:\?\?Z\r\n");
+        }
 
         // Add security token
         if (securityToken != NULL)
@@ -1043,6 +1054,79 @@ testRun(void)
 
                 TEST_ASSIGN(write, storageNewWriteP(s3, STRDEF("file.txt")), "new write");
                 TEST_RESULT_VOID(storagePutP(write, NULL), "write");
+
+                // -----------------------------------------------------------------------------------------------------------------
+                TEST_TITLE("write file in one part with governance retention");
+
+                testRequestP(
+                    service, s3, HTTP_VERB_PUT, "/file.txt", .content = "ABCD", .kms = "kmskey1", .sseC = "rA1P",
+                    .tag = "%20Key%202=%20Value%202&Key1=Value1", .objectLockMode = "GOVERNANCE");
+                testResponseP(service);
+
+                TEST_ASSIGN(write, storageNewWriteP(s3, STRDEF("file.txt"), .retention = 86400000), "new write");
+                TEST_RESULT_VOID(storagePutP(write, BUFSTRDEF("ABCD")), "write");
+
+                // -----------------------------------------------------------------------------------------------------------------
+                TEST_TITLE("write file in one part with compliance retention");
+
+                testRequestP(
+                    service, s3, HTTP_VERB_PUT, "/file.txt", .content = "ABCD", .kms = "kmskey1", .sseC = "rA1P",
+                    .tag = "%20Key%202=%20Value%202&Key1=Value1", .objectLockMode = "COMPLIANCE");
+                testResponseP(service);
+
+                TEST_ASSIGN(
+                    write,
+                    storageNewWriteP(
+                        s3, STRDEF("file.txt"), .retention = 86400000, .retentionMode = storageRetentionModeCompliance),
+                    "new write");
+                TEST_RESULT_VOID(storagePutP(write, BUFSTRDEF("ABCD")), "write");
+
+                // -----------------------------------------------------------------------------------------------------------------
+                TEST_TITLE("write file in chunks with retention only on multipart upload initiation");
+
+                testRequestP(
+                    service, s3, HTTP_VERB_POST, "/file.txt?uploads=", .kms = "kmskey1", .sseC = "rA1P",
+                    .tag = "%20Key%202=%20Value%202&Key1=Value1", .objectLockMode = "COMPLIANCE");
+                testResponseP(
+                    service,
+                    .content =
+                        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        "<InitiateMultipartUploadResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">"
+                        "<Bucket>bucket</Bucket>"
+                        "<Key>file.txt</Key>"
+                        "<UploadId>WxRt</UploadId>"
+                        "</InitiateMultipartUploadResult>");
+
+                testRequestP(
+                    service, s3, HTTP_VERB_PUT, "/file.txt?partNumber=1&uploadId=WxRt", .content = "1234567890123456",
+                    .sseC = "rA1P");
+                testResponseP(service, .header = "etag:WxRt1");
+
+                testRequestP(
+                    service, s3, HTTP_VERB_PUT, "/file.txt?partNumber=2&uploadId=WxRt", .content = "7890123456789012",
+                    .sseC = "rA1P");
+                testResponseP(service, .header = "eTag:WxRt2");
+
+                testRequestP(
+                    service, s3, HTTP_VERB_POST, "/file.txt?uploadId=WxRt",
+                    .content =
+                        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        "<CompleteMultipartUpload>"
+                        "<Part><PartNumber>1</PartNumber><ETag>WxRt1</ETag></Part>"
+                        "<Part><PartNumber>2</PartNumber><ETag>WxRt2</ETag></Part>"
+                        "</CompleteMultipartUpload>\n");
+                testResponseP(
+                    service,
+                    .content =
+                        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        "<CompleteMultipartUploadResult><ETag>XXX</ETag></CompleteMultipartUploadResult>");
+
+                TEST_ASSIGN(
+                    write,
+                    storageNewWriteP(
+                        s3, STRDEF("file.txt"), .retention = 86400000, .retentionMode = storageRetentionModeCompliance),
+                    "new write");
+                TEST_RESULT_VOID(storagePutP(write, BUFSTRDEF("12345678901234567890123456789012")), "write");
 
                 // -----------------------------------------------------------------------------------------------------------------
                 TEST_TITLE("write file in chunks with nothing left over on close");

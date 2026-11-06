@@ -147,7 +147,7 @@ Option constants
 #define CFGOPT_VERBOSE                                              "verbose"
 #define CFGOPT_VERSION                                              "version"
 
-#define CFG_OPTION_TOTAL                                            203
+#define CFG_OPTION_TOTAL                                            205
 
 /***********************************************************************************************************************************
 Option value constants
@@ -353,6 +353,13 @@ Option value constants
 #define CFGOPTVAL_REPO_S3_KEY_TYPE_PROCESS                          4
 #define CFGOPTVAL_REPO_S3_KEY_TYPE_PROCESS_STRID                    STRID5S("process", 4, 0x4e651be50a)
 #define CFGOPTVAL_REPO_S3_KEY_TYPE_PROCESS_Z                        "process"
+
+#define CFGOPTVAL_REPO_S3_RESUME_OBJECT_LOCK_MODE_GOVERNANCE        0
+#define CFGOPTVAL_REPO_S3_RESUME_OBJECT_LOCK_MODE_GOVERNANCE_STRID  STRID5S("governance", 0, 0xa3705d22d9e72)
+#define CFGOPTVAL_REPO_S3_RESUME_OBJECT_LOCK_MODE_GOVERNANCE_Z      "governance"
+#define CFGOPTVAL_REPO_S3_RESUME_OBJECT_LOCK_MODE_COMPLIANCE        1
+#define CFGOPTVAL_REPO_S3_RESUME_OBJECT_LOCK_MODE_COMPLIANCE_STRID  STRID5S("compliance", 1, 0xa37052c835e34)
+#define CFGOPTVAL_REPO_S3_RESUME_OBJECT_LOCK_MODE_COMPLIANCE_Z      "compliance"
 
 #define CFGOPTVAL_REPO_S3_URI_STYLE_HOST                            0
 #define CFGOPTVAL_REPO_S3_URI_STYLE_HOST_STRID                      STRID5S("host", 0, 0xa4de82)
@@ -629,6 +636,8 @@ typedef enum
     cfgOptRepoS3ProcessCmd,
     cfgOptRepoS3Region,
     cfgOptRepoS3RequesterPays,
+    cfgOptRepoS3ResumeObjectLock,
+    cfgOptRepoS3ResumeObjectLockMode,
     cfgOptRepoS3Role,
     cfgOptRepoS3Service,
     cfgOptRepoS3SseCustomerKey,

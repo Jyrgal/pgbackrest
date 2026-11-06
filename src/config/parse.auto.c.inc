@@ -59,6 +59,7 @@ static const StringPubConst parseRuleValueStr[] =
     PARSE_RULE_STRPUB("32KiB"),                                                                                           // val/str
     PARSE_RULE_STRPUB("360"),                                                                                             // val/str
     PARSE_RULE_STRPUB("3600"),                                                                                            // val/str
+    PARSE_RULE_STRPUB("36500d"),                                                                                          // val/str
     PARSE_RULE_STRPUB("443"),                                                                                             // val/str
     PARSE_RULE_STRPUB("4MiB"),                                                                                            // val/str
     PARSE_RULE_STRPUB("4PiB"),                                                                                            // val/str
@@ -87,6 +88,7 @@ static const StringPubConst parseRuleValueStr[] =
     PARSE_RULE_STRPUB("blob.core.windows.net"),                                                                           // val/str
     PARSE_RULE_STRPUB("bz2"),                                                                                             // val/str
     PARSE_RULE_STRPUB("cifs"),                                                                                            // val/str
+    PARSE_RULE_STRPUB("compliance"),                                                                                      // val/str
     PARSE_RULE_STRPUB("count"),                                                                                           // val/str
     PARSE_RULE_STRPUB("debug"),                                                                                           // val/str
     PARSE_RULE_STRPUB("default"),                                                                                         // val/str
@@ -97,6 +99,7 @@ static const StringPubConst parseRuleValueStr[] =
     PARSE_RULE_STRPUB("fingerprint"),                                                                                     // val/str
     PARSE_RULE_STRPUB("full"),                                                                                            // val/str
     PARSE_RULE_STRPUB("gcs"),                                                                                             // val/str
+    PARSE_RULE_STRPUB("governance"),                                                                                      // val/str
     PARSE_RULE_STRPUB("gz"),                                                                                              // val/str
     PARSE_RULE_STRPUB("host"),                                                                                            // val/str
     PARSE_RULE_STRPUB("immediate"),                                                                                       // val/str
@@ -203,6 +206,7 @@ typedef enum
     parseRuleValStrQT_32KiB_QT,                                                                                      // val/str/enum
     parseRuleValStrQT_360_QT,                                                                                        // val/str/enum
     parseRuleValStrQT_3600_QT,                                                                                       // val/str/enum
+    parseRuleValStrQT_36500d_QT,                                                                                     // val/str/enum
     parseRuleValStrQT_443_QT,                                                                                        // val/str/enum
     parseRuleValStrQT_4MiB_QT,                                                                                       // val/str/enum
     parseRuleValStrQT_4PiB_QT,                                                                                       // val/str/enum
@@ -231,6 +235,7 @@ typedef enum
     parseRuleValStrQT_blob_DT_core_DT_windows_DT_net_QT,                                                             // val/str/enum
     parseRuleValStrQT_bz2_QT,                                                                                        // val/str/enum
     parseRuleValStrQT_cifs_QT,                                                                                       // val/str/enum
+    parseRuleValStrQT_compliance_QT,                                                                                 // val/str/enum
     parseRuleValStrQT_count_QT,                                                                                      // val/str/enum
     parseRuleValStrQT_debug_QT,                                                                                      // val/str/enum
     parseRuleValStrQT_default_QT,                                                                                    // val/str/enum
@@ -241,6 +246,7 @@ typedef enum
     parseRuleValStrQT_fingerprint_QT,                                                                                // val/str/enum
     parseRuleValStrQT_full_QT,                                                                                       // val/str/enum
     parseRuleValStrQT_gcs_QT,                                                                                        // val/str/enum
+    parseRuleValStrQT_governance_QT,                                                                                 // val/str/enum
     parseRuleValStrQT_gz_QT,                                                                                         // val/str/enum
     parseRuleValStrQT_host_QT,                                                                                       // val/str/enum
     parseRuleValStrQT_immediate_QT,                                                                                  // val/str/enum
@@ -495,6 +501,7 @@ static const int64_t parseRuleValueTime[] =
     604800000,                                                                                                           // val/time
     1296000000,                                                                                                          // val/time
     7776000000,                                                                                                          // val/time
+    3153600000000,                                                                                                       // val/time
     863999913600000,                                                                                                     // val/time
 };
 
@@ -512,6 +519,7 @@ static const uint8_t parseRuleValueTimeStrMap[] =
     parseRuleValStrQT_7d_QT,                                                                                      // val/time/strmap
     parseRuleValStrQT_15d_QT,                                                                                     // val/time/strmap
     parseRuleValStrQT_90d_QT,                                                                                     // val/time/strmap
+    parseRuleValStrQT_36500d_QT,                                                                                  // val/time/strmap
     parseRuleValStrQT_9999999d_QT,                                                                                // val/time/strmap
 };
 
@@ -529,6 +537,7 @@ typedef enum
     parseRuleValTime7d,                                                                                             // val/time/enum
     parseRuleValTime15d,                                                                                            // val/time/enum
     parseRuleValTime90d,                                                                                            // val/time/enum
+    parseRuleValTime36500d,                                                                                         // val/time/enum
     parseRuleValTime9999999d,                                                                                       // val/time/enum
 } ParseRuleValueTime;
 
@@ -8355,6 +8364,177 @@ static const ParseRuleOption parseRuleOption[CFG_OPTION_TOTAL] =
         ),                                                                                             // opt/repo-s3-requester-pays
     ),                                                                                                 // opt/repo-s3-requester-pays
     // -----------------------------------------------------------------------------------------------------------------------------
+    PARSE_RULE_OPTION                                                                              // opt/repo-s3-resume-object-lock
+    (                                                                                              // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_NAME("repo-s3-resume-object-lock"),                                      // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_TYPE(Time),                                                              // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_RESET(true),                                                             // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_REQUIRED(false),                                                         // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_SECTION(Global),                                                         // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_GROUP_ID(Repo),                                                          // opt/repo-s3-resume-object-lock
+                                                                                                   // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_COMMAND_ROLE_MAIN_VALID_LIST                                             // opt/repo-s3-resume-object-lock
+        (                                                                                          // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Annotate)                                                    // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                                  // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                                 // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Backup)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Check)                                                       // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Expire)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Info)                                                        // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Manifest)                                                    // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(RepoGet)                                                     // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(RepoLs)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(RepoRm)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Restore)                                                     // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(StanzaCreate)                                                // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(StanzaDelete)                                                // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(StanzaUpgrade)                                               // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Verify)                                                      // opt/repo-s3-resume-object-lock
+        ),                                                                                         // opt/repo-s3-resume-object-lock
+                                                                                                   // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_COMMAND_ROLE_ASYNC_VALID_LIST                                            // opt/repo-s3-resume-object-lock
+        (                                                                                          // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                                  // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                                 // opt/repo-s3-resume-object-lock
+        ),                                                                                         // opt/repo-s3-resume-object-lock
+                                                                                                   // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_COMMAND_ROLE_LOCAL_VALID_LIST                                            // opt/repo-s3-resume-object-lock
+        (                                                                                          // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                                  // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                                 // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Backup)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Restore)                                                     // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Verify)                                                      // opt/repo-s3-resume-object-lock
+        ),                                                                                         // opt/repo-s3-resume-object-lock
+                                                                                                   // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTION_COMMAND_ROLE_REMOTE_VALID_LIST                                           // opt/repo-s3-resume-object-lock
+        (                                                                                          // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Annotate)                                                    // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                                  // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                                 // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Backup)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Check)                                                       // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Expire)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Info)                                                        // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Manifest)                                                    // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(RepoGet)                                                     // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(RepoLs)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(RepoRm)                                                      // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Restore)                                                     // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(StanzaCreate)                                                // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(StanzaDelete)                                                // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(StanzaUpgrade)                                               // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTION_COMMAND(Verify)                                                      // opt/repo-s3-resume-object-lock
+        ),                                                                                         // opt/repo-s3-resume-object-lock
+                                                                                                   // opt/repo-s3-resume-object-lock
+        PARSE_RULE_OPTIONAL                                                                        // opt/repo-s3-resume-object-lock
+        (                                                                                          // opt/repo-s3-resume-object-lock
+            PARSE_RULE_OPTIONAL_GROUP                                                              // opt/repo-s3-resume-object-lock
+            (                                                                                      // opt/repo-s3-resume-object-lock
+                PARSE_RULE_OPTIONAL_DEPEND                                                         // opt/repo-s3-resume-object-lock
+                (                                                                                  // opt/repo-s3-resume-object-lock
+                    PARSE_RULE_VAL_OPT(RepoType),                                                  // opt/repo-s3-resume-object-lock
+                    PARSE_RULE_VAL_STRID(s3),                                                      // opt/repo-s3-resume-object-lock
+                ),                                                                                 // opt/repo-s3-resume-object-lock
+                                                                                                   // opt/repo-s3-resume-object-lock
+                PARSE_RULE_OPTIONAL_ALLOW_RANGE                                                    // opt/repo-s3-resume-object-lock
+                (                                                                                  // opt/repo-s3-resume-object-lock
+                    PARSE_RULE_VAL_TIME(1m),                                                       // opt/repo-s3-resume-object-lock
+                    PARSE_RULE_VAL_TIME(36500d),                                                   // opt/repo-s3-resume-object-lock
+                ),                                                                                 // opt/repo-s3-resume-object-lock
+            ),                                                                                     // opt/repo-s3-resume-object-lock
+        ),                                                                                         // opt/repo-s3-resume-object-lock
+    ),                                                                                             // opt/repo-s3-resume-object-lock
+    // -----------------------------------------------------------------------------------------------------------------------------
+    PARSE_RULE_OPTION                                                                         // opt/repo-s3-resume-object-lock-mode
+    (                                                                                         // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_NAME("repo-s3-resume-object-lock-mode"),                            // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_TYPE(StringId),                                                     // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_SEQUENCE(true),                                                     // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_RESET(true),                                                        // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_REQUIRED(true),                                                     // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_SECTION(Global),                                                    // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_GROUP_ID(Repo),                                                     // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_COMMAND_ROLE_MAIN_VALID_LIST                                        // opt/repo-s3-resume-object-lock-mode
+        (                                                                                     // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Annotate)                                               // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                             // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                            // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Backup)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Check)                                                  // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Expire)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Info)                                                   // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Manifest)                                               // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(RepoGet)                                                // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(RepoLs)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(RepoRm)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Restore)                                                // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(StanzaCreate)                                           // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(StanzaDelete)                                           // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(StanzaUpgrade)                                          // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Verify)                                                 // opt/repo-s3-resume-object-lock-mode
+        ),                                                                                    // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_COMMAND_ROLE_ASYNC_VALID_LIST                                       // opt/repo-s3-resume-object-lock-mode
+        (                                                                                     // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                             // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                            // opt/repo-s3-resume-object-lock-mode
+        ),                                                                                    // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_COMMAND_ROLE_LOCAL_VALID_LIST                                       // opt/repo-s3-resume-object-lock-mode
+        (                                                                                     // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                             // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                            // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Backup)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Restore)                                                // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Verify)                                                 // opt/repo-s3-resume-object-lock-mode
+        ),                                                                                    // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTION_COMMAND_ROLE_REMOTE_VALID_LIST                                      // opt/repo-s3-resume-object-lock-mode
+        (                                                                                     // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Annotate)                                               // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchiveGet)                                             // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(ArchivePush)                                            // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Backup)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Check)                                                  // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Expire)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Info)                                                   // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Manifest)                                               // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(RepoGet)                                                // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(RepoLs)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(RepoRm)                                                 // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Restore)                                                // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(StanzaCreate)                                           // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(StanzaDelete)                                           // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(StanzaUpgrade)                                          // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTION_COMMAND(Verify)                                                 // opt/repo-s3-resume-object-lock-mode
+        ),                                                                                    // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+        PARSE_RULE_OPTIONAL                                                                   // opt/repo-s3-resume-object-lock-mode
+        (                                                                                     // opt/repo-s3-resume-object-lock-mode
+            PARSE_RULE_OPTIONAL_GROUP                                                         // opt/repo-s3-resume-object-lock-mode
+            (                                                                                 // opt/repo-s3-resume-object-lock-mode
+                PARSE_RULE_OPTIONAL_DEPEND                                                    // opt/repo-s3-resume-object-lock-mode
+                (                                                                             // opt/repo-s3-resume-object-lock-mode
+                    PARSE_RULE_VAL_OPT(RepoS3ResumeObjectLock),                               // opt/repo-s3-resume-object-lock-mode
+                ),                                                                            // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+                PARSE_RULE_OPTIONAL_ALLOW_LIST                                                // opt/repo-s3-resume-object-lock-mode
+                (                                                                             // opt/repo-s3-resume-object-lock-mode
+                    PARSE_RULE_VAL_STRID(governance),                                         // opt/repo-s3-resume-object-lock-mode
+                    PARSE_RULE_VAL_STRID(compliance),                                         // opt/repo-s3-resume-object-lock-mode
+                ),                                                                            // opt/repo-s3-resume-object-lock-mode
+                                                                                              // opt/repo-s3-resume-object-lock-mode
+                PARSE_RULE_OPTIONAL_DEFAULT                                                   // opt/repo-s3-resume-object-lock-mode
+                (                                                                             // opt/repo-s3-resume-object-lock-mode
+                    PARSE_RULE_VAL_STRID(governance),                                         // opt/repo-s3-resume-object-lock-mode
+                ),                                                                            // opt/repo-s3-resume-object-lock-mode
+            ),                                                                                // opt/repo-s3-resume-object-lock-mode
+        ),                                                                                    // opt/repo-s3-resume-object-lock-mode
+    ),                                                                                        // opt/repo-s3-resume-object-lock-mode
+    // -----------------------------------------------------------------------------------------------------------------------------
     PARSE_RULE_OPTION                                                                                            // opt/repo-s3-role
     (                                                                                                            // opt/repo-s3-role
         PARSE_RULE_OPTION_NAME("repo-s3-role"),                                                                  // opt/repo-s3-role
@@ -12379,6 +12559,8 @@ static const uint8_t optionResolveOrder[] =
     cfgOptRepoS3ProcessCmd,                                                                                     // opt-resolve-order
     cfgOptRepoS3Region,                                                                                         // opt-resolve-order
     cfgOptRepoS3RequesterPays,                                                                                  // opt-resolve-order
+    cfgOptRepoS3ResumeObjectLock,                                                                               // opt-resolve-order
+    cfgOptRepoS3ResumeObjectLockMode,                                                                           // opt-resolve-order
     cfgOptRepoS3Role,                                                                                           // opt-resolve-order
     cfgOptRepoS3Service,                                                                                        // opt-resolve-order
     cfgOptRepoS3SseCustomerKey,                                                                                 // opt-resolve-order

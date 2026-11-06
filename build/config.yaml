@@ -2489,6 +2489,24 @@ option:
       list:
         - s3
 
+  repo-s3-resume-object-lock:
+    inherit: repo-s3-bucket
+    type: time
+    required: false
+    allow-range: [1m, 36500d]
+
+  repo-s3-resume-object-lock-mode:
+    inherit: repo-s3-bucket
+    type: string-id
+    sequence: true
+    default: governance
+    # Keep synced with StorageRetentionMode enum
+    allow-list:
+      - governance
+      - compliance
+    depend:
+      option: repo-s3-resume-object-lock
+
   repo-s3-service:
     inherit: repo-s3-bucket
     default: s3
